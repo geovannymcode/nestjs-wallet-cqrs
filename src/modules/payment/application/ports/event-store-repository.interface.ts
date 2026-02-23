@@ -36,6 +36,9 @@ export interface EventStoreRepository {
 
   /** Recupera todos los eventos de un agregado */
   getEvents(aggregateId: string): Promise<StoredEvent[]>;
+
+  /** Busca un evento por paymentId */
+  findEventByPaymentId(paymentId: string): Promise<StoredEvent | null>;
 }
 
 export const EVENT_STORE_REPOSITORY = Symbol('EventStoreRepository');

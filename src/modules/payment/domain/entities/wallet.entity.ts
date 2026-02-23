@@ -54,8 +54,16 @@ export class Wallet {
     return this.balance - amount;
   }
 
-  getWalletId(): string { return this.walletId; }
-  getBalance(): number { return this.balance; }
-  getCurrency(): string { return this.currency; }
-  getOwnerId(): string { return this.ownerId; }
+  getWalletId(): string {
+    return this.walletId;
+  }
+  getBalance(): number {
+    return this.balance;
+  }
+  getCurrency(): string {
+    return this.currency;
+  }
+  getOwnerId(): string {
+    return this.ownerId;
+  }
 }
