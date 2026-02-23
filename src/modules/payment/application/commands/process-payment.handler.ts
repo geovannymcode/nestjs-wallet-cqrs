@@ -23,9 +23,7 @@ import { Result } from '../../../../shared/domain/result';
  *   Command → Validar → Crear Evento → Append al Event Store → Publicar
  */
 @CommandHandler(ProcessPaymentCommand)
-export class ProcessPaymentHandler
-  implements ICommandHandler<ProcessPaymentCommand>
-{
+export class ProcessPaymentHandler implements ICommandHandler<ProcessPaymentCommand> {
   private readonly logger = new Logger(ProcessPaymentHandler.name);
 
   constructor(
@@ -70,9 +68,9 @@ export class ProcessPaymentHandler
 
     // ─── 5. APPEND al Event Store (solo INSERT, NUNCA UPDATE) ─
     await this.eventStore.append(
-      command.walletId,       // aggregateId
-      'Wallet',              // aggregateType
-      'PaymentProcessed',    // eventType
+      command.walletId, // aggregateId
+      'Wallet', // aggregateType
+      'PaymentProcessed', // eventType
       {
         paymentId: event.paymentId,
         walletId: event.walletId,

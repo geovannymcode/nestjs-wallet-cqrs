@@ -2,8 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventBus } from '@nestjs/cqrs';
 import { ProcessPaymentHandler } from './process-payment.handler';
 import { ProcessPaymentCommand } from './process-payment.command';
-import { WalletRepository, WALLET_REPOSITORY } from '../ports/wallet-repository.interface';
-import { EventStoreRepository, EVENT_STORE_REPOSITORY } from '../ports/event-store-repository.interface';
+import {
+  WalletRepository,
+  WALLET_REPOSITORY,
+} from '../ports/wallet-repository.interface';
+import {
+  EventStoreRepository,
+  EVENT_STORE_REPOSITORY,
+} from '../ports/event-store-repository.interface';
 import { Wallet } from '../../domain/entities/wallet.entity';
 
 describe('ProcessPaymentHandler', () => {
@@ -40,15 +46,21 @@ describe('ProcessPaymentHandler', () => {
   it('should process payment and append event to store', async () => {
     // Arrange
     const wallet = Wallet.create({
-      walletId: 'WAL-001', ownerId: 'USER-001',
-      balance: 10_000, currency: 'USD',
+      walletId: 'WAL-001',
+      ownerId: 'USER-001',
+      balance: 10_000,
+      currency: 'USD',
     }).value!;
 
     walletRepo.findById.mockResolvedValue(wallet);
     eventStore.append.mockResolvedValue();
 
     const command = new ProcessPaymentCommand(
-      'WAL-001', 500, 'USD', 'WAL-002', 'Test payment',
+      'WAL-001',
+      500,
+      'USD',
+      'WAL-002',
+      'Test payment',
     );
 
     // Act
@@ -58,7 +70,9 @@ describe('ProcessPaymentHandler', () => {
     expect(result.success).toBe(true);
     expect(result.value).toBeDefined();
     expect(eventStore.append).toHaveBeenCalledWith(
-      'WAL-001', 'Wallet', 'PaymentProcessed',
+      'WAL-001',
+      'Wallet',
+      'PaymentProcessed',
       expect.objectContaining({ amount: 500, newBalance: 9_500 }),
     );
     expect(eventBus.publish).toHaveBeenCalled();
@@ -68,7 +82,11 @@ describe('ProcessPaymentHandler', () => {
     walletRepo.findById.mockResolvedValue(null);
 
     const command = new ProcessPaymentCommand(
-      'WAL-FAKE', 500, 'USD', 'WAL-002', 'Test',
+      'WAL-FAKE',
+      500,
+      'USD',
+      'WAL-002',
+      'Test',
     );
 
     const result = await handler.execute(command);
@@ -80,14 +98,20 @@ describe('ProcessPaymentHandler', () => {
 
   it('should reject payment with insufficient funds', async () => {
     const wallet = Wallet.create({
-      walletId: 'WAL-003', ownerId: 'USER-003',
-      balance: 250, currency: 'USD',
+      walletId: 'WAL-003',
+      ownerId: 'USER-003',
+      balance: 250,
+      currency: 'USD',
     }).value!;
 
     walletRepo.findById.mockResolvedValue(wallet);
 
     const command = new ProcessPaymentCommand(
-      'WAL-003', 5_000, 'USD', 'WAL-001', 'Too much',
+      'WAL-003',
+      5_000,
+      'USD',
+      'WAL-001',
+      'Too much',
     );
 
     const result = await handler.execute(command);
