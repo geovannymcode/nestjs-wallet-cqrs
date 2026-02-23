@@ -1,11 +1,4 @@
-import {
-  IsOptional,
-  IsString,
-  IsInt,
-  Min,
-  Max,
-  IsEnum,
-} from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentStatus } from '../../domain/enums/payment-status.enum';
 
@@ -21,7 +14,9 @@ export class ListPaymentsDto {
   readonly walletId?: string;
 
   @IsOptional()
-  @IsEnum(PaymentStatus, { message: 'Status inválido. Valores: PROCESSED, CANCELLED, REFUNDED' })
+  @IsEnum(PaymentStatus, {
+    message: 'Status inválido. Valores: PROCESSED, CANCELLED, REFUNDED',
+  })
   readonly status?: PaymentStatus;
 
   @IsOptional()
