@@ -1,7 +1,12 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PaymentProcessedEvent } from '../../domain/events/payment-processed.event';
+import {
+  PAYMENT_READ_REPOSITORY,
+  PaymentReadRepository,
+} from '../../application/ports/payment-read-repository.interface';
+import { PaymentStatus } from '../../domain/enums/payment-status.enum';
 
 /**
  * PaymentProcessedHandler (Projection)
@@ -19,13 +24,14 @@ import { PaymentProcessedEvent } from '../../domain/events/payment-processed.eve
  * Esta tabla es solo una PROYECCIÓN optimizada para queries.
  */
 @EventsHandler(PaymentProcessedEvent)
-export class PaymentProcessedHandler
-  implements IEventHandler<PaymentProcessedEvent>
-{
+export class PaymentProcessedHandler implements IEventHandler<PaymentProcessedEvent> {
   private readonly logger = new Logger(PaymentProcessedHandler.name);
   private pool: Pool;
 
-  constructor() {
+  constructor(
+    @Inject(PAYMENT_READ_REPOSITORY)
+    private readonly paymentReadRepository: PaymentReadRepository,
+  ) {
     this.pool = new Pool({
       host: process.env.DB_HOST ?? 'localhost',
       port: parseInt(process.env.DB_PORT ?? '5432'),
@@ -51,22 +57,17 @@ export class PaymentProcessedHandler
     try {
       await client.query('BEGIN');
 
-      // ─── 1. Insertar pago en la tabla de lectura ─────────
-      await client.query(
-        `INSERT INTO payments_read_model (
-          payment_id, wallet_id, amount, currency,
-          recipient_wallet_id, concept, status, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, 'COMPLETED', $7)`,
-        [
-          event.paymentId,
-          event.walletId,
-          event.amount,
-          event.currency,
-          event.recipientWalletId,
-          event.concept,
-          event.occurredAt,
-        ],
-      );
+      // ─── 1. Insertar pago en el Read Model ─────────────────
+      await this.paymentReadRepository.upsert({
+        paymentId: event.paymentId,
+        walletId: event.walletId,
+        amount: event.amount,
+        currency: event.currency,
+        recipientWalletId: event.recipientWalletId,
+        concept: event.concept,
+        status: PaymentStatus.PROCESSED,
+        createdAt: event.occurredAt,
+      });
 
       // ─── 2. Actualizar saldo en la proyección de wallet ──
       await client.query(
@@ -80,14 +81,13 @@ export class PaymentProcessedHandler
 
       this.logger.log(
         `Proyección actualizada: wallet=${event.walletId} | ` +
-        `balance=${event.previousBalance} → ${event.newBalance}`,
+          `balance=${event.previousBalance} → ${event.newBalance}`,
       );
     } catch (error) {
       await client.query('ROLLBACK');
       this.logger.error(
         `Error proyectando evento ${event.paymentId}: ${error}`,
       );
-      // El evento sigue en el Event Store → se puede re-procesar
       throw error;
     } finally {
       client.release();
