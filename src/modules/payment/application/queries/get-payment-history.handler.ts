@@ -27,9 +27,7 @@ export interface PaymentHistoryItem {
  * todo el historial de una wallet en cualquier momento.
  */
 @QueryHandler(GetPaymentHistoryQuery)
-export class GetPaymentHistoryHandler
-  implements IQueryHandler<GetPaymentHistoryQuery>
-{
+export class GetPaymentHistoryHandler implements IQueryHandler<GetPaymentHistoryQuery> {
   private readonly logger = new Logger(GetPaymentHistoryHandler.name);
 
   constructor(
@@ -37,27 +35,23 @@ export class GetPaymentHistoryHandler
     private readonly eventStore: EventStoreRepository,
   ) {}
 
-  async execute(
-    query: GetPaymentHistoryQuery,
-  ): Promise<PaymentHistoryItem[]> {
+  async execute(query: GetPaymentHistoryQuery): Promise<PaymentHistoryItem[]> {
     const events = await this.eventStore.getEvents(query.walletId);
 
     this.logger.log(
       `Historial consultado: wallet=${query.walletId} | ${events.length} eventos`,
     );
 
-    return events
-      .slice(-query.limit)
-      .map((event: StoredEvent) => ({
-        eventType: event.eventType,
-        amount: event.eventData['amount'] as number,
-        currency: event.eventData['currency'] as string,
-        recipientWalletId: event.eventData['recipientWalletId'] as string,
-        concept: event.eventData['concept'] as string,
-        previousBalance: event.eventData['previousBalance'] as number,
-        newBalance: event.eventData['newBalance'] as number,
-        occurredAt: event.occurredAt,
-        version: event.version,
-      }));
+    return events.slice(-query.limit).map((event: StoredEvent) => ({
+      eventType: event.eventType,
+      amount: event.eventData['amount'] as number,
+      currency: event.eventData['currency'] as string,
+      recipientWalletId: event.eventData['recipientWalletId'] as string,
+      concept: event.eventData['concept'] as string,
+      previousBalance: event.eventData['previousBalance'] as number,
+      newBalance: event.eventData['newBalance'] as number,
+      occurredAt: event.occurredAt,
+      version: event.version,
+    }));
   }
 }
