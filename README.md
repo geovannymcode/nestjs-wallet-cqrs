@@ -6,14 +6,14 @@ Demo project for **BAQ.js Meetup** — Demonstrates CQRS and Event Sourcing patt
 
 ```
 ┌──────────┐     ┌──────────────┐     ┌──────────────┐
-│  Client   │────▶│   COMMAND    │────▶│  Event Store  │
-│  (POST)   │     │   Handler    │     │ (append-only) │
+│  Client  │────▶│   COMMAND    │────▶│  Event Store │
+│  (POST)  │     │   Handler    │     │ (append-only)│
 └──────────┘     └──────────────┘     └──────┬───────┘
-                                              │
-                                              ▼
+                                             │
+                                             ▼
 ┌──────────┐     ┌──────────────┐     ┌──────────────┐
-│  Client   │────▶│    QUERY     │────▶│   Read DB     │◀── Event Handler
-│  (GET)    │     │   Handler    │     │ (proyección)  │    (async)
+│  Client  │────▶│    QUERY     │────▶│   Read DB    │◀── Event Handler
+│  (GET)   │     │   Handler    │     │ (proyección) │    (async)
 └──────────┘     └──────────────┘     └──────────────┘
 ```
 
