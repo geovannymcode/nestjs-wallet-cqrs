@@ -1,8 +1,8 @@
 {
-  "name": "nestjs-wallet-cqrs",
-  "version": "1.0.0",
-  "description": "Digital Wallet with CQRS + Event Sourcing - BAQ.js Demo",
-  "author": "Geovanny Mendoza",
+  "name": "nestjs-fintech-clean",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
