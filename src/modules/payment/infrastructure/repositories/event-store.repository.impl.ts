@@ -115,6 +115,36 @@ export class EventStoreRepositoryImpl
     }));
   }
 
+  /**
+   * findEventByPaymentId() - Busca un evento específico por paymentId
+   * usando el operador JSONB de PostgreSQL.
+   * Útil para cancelaciones y reembolsos que necesitan el evento original.
+   */
+  async findEventByPaymentId(paymentId: string): Promise<StoredEvent | null> {
+    const result = await this.pool.query(
+      `SELECT id, aggregate_id, aggregate_type,
+              event_type, event_data, occurred_at, version
+       FROM event_store
+       WHERE event_data->>'paymentId' = $1
+         AND event_type = 'PaymentProcessed'
+       LIMIT 1`,
+      [paymentId],
+    );
+
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      aggregateId: row.aggregate_id,
+      aggregateType: row.aggregate_type,
+      eventType: row.event_type,
+      eventData: row.event_data,
+      occurredAt: row.occurred_at,
+      version: row.version,
+    };
+  }
+
   /** Crea la tabla del Event Store si no existe */
   private async ensureTable(): Promise<void> {
     await this.pool.query(`
