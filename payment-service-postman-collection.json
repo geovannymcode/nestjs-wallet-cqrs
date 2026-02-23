@@ -35,7 +35,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"walletId\": \"wallet-123\",\n  \"amount\": 100,\n  \"currency\": \"USD\",\n  \"recipientWalletId\": \"wallet-456\",\n  \"concept\": \"Pago de prueba\"\n}"
+          "raw": "{\n  \"walletId\": \"WAL-001\",\n  \"amount\": 100,\n  \"currency\": \"USD\",\n  \"recipientWalletId\": \"WAL-002\",\n  \"concept\": \"Pago de prueba\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/payments",
@@ -125,7 +125,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/payments?walletId=wallet-123&status=PROCESSED&page=1&limit=20",
+          "raw": "{{baseUrl}}/payments?walletId=WAL-001&status=PROCESSED&page=1&limit=20",
           "host": [
             "{{baseUrl}}"
           ],
@@ -135,7 +135,7 @@
           "query": [
             {
               "key": "walletId",
-              "value": "wallet-123"
+              "value": "WAL-001"
             },
             {
               "key": "status",
@@ -160,14 +160,14 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/payments/history/wallet-123?limit=5",
+          "raw": "{{baseUrl}}/payments/history/WAL-001?limit=5",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "payments",
             "history",
-            "wallet-123"
+            "WAL-001"
           ],
           "query": [
             {
