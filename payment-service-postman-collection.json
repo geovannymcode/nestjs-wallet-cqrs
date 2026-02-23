@@ -49,6 +49,112 @@
       }
     },
     {
+      "name": "Cancel Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Pago duplicado - cancelación de prueba\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/{{paymentId}}/cancel",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "{{paymentId}}",
+            "cancel"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Refund Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Solicitud de reembolso del cliente\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/{{paymentId}}/refund",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "{{paymentId}}",
+            "refund"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Payment By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/payments/{{paymentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments",
+            "{{paymentId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List Payments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/payments?walletId=wallet-123&status=PROCESSED&page=1&limit=20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payments"
+          ],
+          "query": [
+            {
+              "key": "walletId",
+              "value": "wallet-123"
+            },
+            {
+              "key": "status",
+              "value": "PROCESSED",
+              "description": "Valores: PROCESSED, CANCELLED, REFUNDED"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "Get Payment History",
       "request": {
         "method": "GET",
@@ -77,6 +183,11 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "paymentId",
+      "value": "REPLACE_WITH_PAYMENT_ID",
+      "description": "ID del pago retornado por Process Payment"
     }
   ]
 }

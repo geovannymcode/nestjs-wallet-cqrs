@@ -2,7 +2,7 @@ export class Result<T> {
   constructor(
     public readonly success: boolean,
     public readonly error?: string,
-    public readonly value?: T
+    public readonly value?: T,
   ) {}
 
   static ok<T>(value?: T): Result<T> {
