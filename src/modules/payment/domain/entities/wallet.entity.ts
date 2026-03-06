@@ -3,6 +3,7 @@ import { Result } from '../../../../shared/domain/result';
 export interface WalletProps {
   walletId: string;
   ownerId: string;
+  ownerName: string;
   balance: number;
   currency: string;
 }
@@ -16,12 +17,14 @@ export interface WalletProps {
 export class Wallet {
   private readonly walletId: string;
   private readonly ownerId: string;
+  private readonly ownerName: string;
   private balance: number;
   private readonly currency: string;
 
   private constructor(props: WalletProps) {
     this.walletId = props.walletId;
     this.ownerId = props.ownerId;
+    this.ownerName = props.ownerName;
     this.balance = props.balance;
     this.currency = props.currency;
   }
@@ -65,5 +68,8 @@ export class Wallet {
   }
   getOwnerId(): string {
     return this.ownerId;
+  }
+  getOwnerName(): string {
+    return this.ownerName;
   }
 }

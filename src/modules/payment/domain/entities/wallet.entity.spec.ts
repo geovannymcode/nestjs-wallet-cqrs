@@ -4,6 +4,7 @@ describe('Wallet Entity', () => {
   const validProps = {
     walletId: 'WAL-001',
     ownerId: 'USER-001',
+    ownerName: 'Geovanny Mendoza',
     balance: 10_000,
     currency: 'USD',
   };
