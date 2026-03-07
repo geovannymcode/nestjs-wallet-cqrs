@@ -22,6 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_event_store_aggregate
 CREATE TABLE IF NOT EXISTS wallets_read_model (
   wallet_id   VARCHAR(50) PRIMARY KEY,
   owner_id    VARCHAR(50) NOT NULL,
+  owner_name  VARCHAR(100) NOT NULL DEFAULT '',
   balance     DECIMAL(12, 2) NOT NULL DEFAULT 0,
   currency    VARCHAR(3) NOT NULL DEFAULT 'USD',
   updated_at  TIMESTAMP DEFAULT NOW()
@@ -42,9 +43,11 @@ CREATE INDEX IF NOT EXISTS idx_payments_wallet
   ON payments_read_model (wallet_id, created_at DESC);
 
 -- DEMO DATA
-INSERT INTO wallets_read_model (wallet_id, owner_id, balance, currency)
+INSERT INTO wallets_read_model (wallet_id, owner_id, owner_name, balance, currency)
 VALUES
-  ('WAL-001', 'USER-001', 10000.00, 'USD'),
-  ('WAL-002', 'USER-002', 5000.00, 'USD'),
-  ('WAL-003', 'USER-003', 250.00, 'USD')
+  ('WAL-001', 'USER-001', 'Geovanny Mendoza', 10000.00, 'USD'),
+  ('WAL-002', 'USER-002', 'Luis Porras', 5000.00, 'USD'),
+  ('WAL-003', 'USER-003', 'Jesus Viloria', 250.00, 'USD'),
+  ('WAL-004', 'USER-004', 'Kelly Villa', 8000.00, 'USD'),
+  ('WAL-005', 'USER-005', 'Giselle Ulloa', 3500.00, 'USD')
 ON CONFLICT (wallet_id) DO NOTHING;
