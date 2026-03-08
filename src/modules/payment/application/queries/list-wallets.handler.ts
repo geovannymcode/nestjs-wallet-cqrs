@@ -9,7 +9,9 @@ import {
 export interface WalletSummary {
   walletId: string;
   ownerName: string;
+  balance: number;
   currency: string;
+  avatar: string;
 }
 
 /**
@@ -32,10 +34,14 @@ export class ListWalletsHandler implements IQueryHandler<ListWalletsQuery> {
 
     this.logger.log(`Listando wallets: ${wallets.length} encontradas`);
 
-    return wallets.map((wallet) => ({
+    const avatars = ['👨', '👨‍🔧', '🧑‍💼', '👩‍🎨', '👩'];
+
+    return wallets.map((wallet, index) => ({
       walletId: wallet.getWalletId(),
       ownerName: wallet.getOwnerName(),
+      balance: wallet.getBalance(),
       currency: wallet.getCurrency(),
+      avatar: avatars[index % avatars.length],
     }));
   }
 }
