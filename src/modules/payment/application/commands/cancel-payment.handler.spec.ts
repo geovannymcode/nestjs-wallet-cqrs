@@ -71,6 +71,7 @@ describe('CancelPaymentHandler', () => {
     const wallet = Wallet.create({
       walletId: 'WAL-001',
       ownerId: 'USER-001',
+      ownerName: 'Geovanny Mendoza',
       balance: 9500,
       currency: 'USD',
     }).value!;

@@ -71,6 +71,7 @@ describe('RefundPaymentHandler', () => {
     const wallet = Wallet.create({
       walletId: 'WAL-001',
       ownerId: 'USER-001',
+      ownerName: 'Geovanny Mendoza',
       balance: 9000,
       currency: 'USD',
     }).value!;

@@ -48,6 +48,7 @@ describe('ProcessPaymentHandler', () => {
     const wallet = Wallet.create({
       walletId: 'WAL-001',
       ownerId: 'USER-001',
+      ownerName: 'Geovanny Mendoza',
       balance: 10_000,
       currency: 'USD',
     }).value!;
@@ -100,6 +101,7 @@ describe('ProcessPaymentHandler', () => {
     const wallet = Wallet.create({
       walletId: 'WAL-003',
       ownerId: 'USER-003',
+      ownerName: 'Jesus Viloria',
       balance: 250,
       currency: 'USD',
     }).value!;
