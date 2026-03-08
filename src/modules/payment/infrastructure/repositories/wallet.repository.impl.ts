@@ -31,6 +31,10 @@ export class WalletRepositoryImpl implements WalletRepository {
     return wallet;
   }
 
+  async findAll(): Promise<Wallet[]> {
+    return Array.from(this.wallets.values());
+  }
+
   private seedDemoData(): void {
     const demoWallets = [
       {

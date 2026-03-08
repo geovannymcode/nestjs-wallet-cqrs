@@ -6,6 +6,7 @@ import { Wallet } from '../../domain/entities/wallet.entity';
  */
 export interface WalletRepository {
   findById(walletId: string): Promise<Wallet | null>;
+  findAll(): Promise<Wallet[]>;
 }
 
 export const WALLET_REPOSITORY = Symbol('WalletRepository');

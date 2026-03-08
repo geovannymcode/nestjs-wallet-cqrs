@@ -3,6 +3,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 
 // Presentation
 import { PaymentController } from './presentation/controllers/payment.controller';
+import { WalletController } from './presentation/controllers/wallet.controller';
 
 // Application - Commands
 import { ProcessPaymentHandler } from './application/commands/process-payment.handler';
@@ -13,6 +14,7 @@ import { RefundPaymentHandler } from './application/commands/refund-payment.hand
 import { GetPaymentHistoryHandler } from './application/queries/get-payment-history.handler';
 import { GetPaymentByIdHandler } from './application/queries/get-payment-by-id.handler';
 import { ListPaymentsHandler } from './application/queries/list-payments.handler';
+import { ListWalletsHandler } from './application/queries/list-wallets.handler';
 
 // Infrastructure - Repositories
 import { EventStoreRepositoryImpl } from './infrastructure/repositories/event-store.repository.impl';
@@ -33,14 +35,14 @@ import { PAYMENT_READ_REPOSITORY } from './application/ports/payment-read-reposi
 const CommandHandlers = [ProcessPaymentHandler, CancelPaymentHandler, RefundPaymentHandler];
 
 /** CQRS Query Handlers */
-const QueryHandlers = [GetPaymentHistoryHandler, GetPaymentByIdHandler, ListPaymentsHandler];
+const QueryHandlers = [GetPaymentHistoryHandler, GetPaymentByIdHandler, ListPaymentsHandler, ListWalletsHandler];
 
 /** Event Handlers (Projections) */
 const EventHandlers = [PaymentProcessedHandler, PaymentCancelledProjection, PaymentRefundedProjection];
 
 @Module({
   imports: [CqrsModule],
-  controllers: [PaymentController],
+  controllers: [PaymentController, WalletController],
   providers: [
     // Handlers
     ...CommandHandlers,
