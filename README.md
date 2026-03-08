@@ -60,7 +60,9 @@ src/
         │   │   ├── get-payment-by-id.query.ts
         │   │   ├── get-payment-by-id.handler.ts     # Obtener pago por ID
         │   │   ├── list-payments.query.ts
-        │   │   └── list-payments.handler.ts         # Listar pagos con filtros
+        │   │   ├── list-payments.handler.ts         # Listar pagos con filtros
+        │   │   ├── list-wallets.query.ts
+        │   │   └── list-wallets.handler.ts          # Listar wallets disponibles
         │   └── ports/
         │       ├── event-store-repository.interface.ts
         │       ├── wallet-repository.interface.ts
@@ -89,7 +91,8 @@ src/
         │
         └── presentation/
             ├── controllers/
-            │   └── payment.controller.ts
+            │   ├── payment.controller.ts
+            │   └── wallet.controller.ts             # GET /wallets
             └── dto/
                 ├── process-payment.dto.ts
                 ├── cancel-payment.dto.ts
@@ -164,6 +167,24 @@ Content-Type: application/json
 
 ### Queries (Read Side)
 
+#### Listar Wallets
+```bash
+GET http://localhost:3000/wallets
+```
+
+Respuesta:
+```json
+[
+  {
+    "walletId": "WAL-001",
+    "ownerName": "Geovanny Mendoza",
+    "balance": 10000,
+    "currency": "USD",
+    "avatar": "👨"
+  }
+]
+```
+
 #### Listar Pagos (con filtros y paginación)
 ```bash
 GET http://localhost:3000/payments?walletId=WAL-001&status=PROCESSED&page=1&limit=20
@@ -202,32 +223,39 @@ event_store (id, aggregate_id, aggregate_type, event_type, event_data, occurred_
 
 ### Read Side — Proyecciones (actualizadas async)
 ```sql
-wallets_read_model  (wallet_id, owner_id, balance, currency, updated_at)
+wallets_read_model  (wallet_id, owner_id, owner_name, balance, currency, updated_at)
 payments_read_model (payment_id, wallet_id, amount, currency, recipient_wallet_id, concept, status, created_at)
 ```
 
 ### Datos de Demo
 
-La BD se inicializa con 3 wallets de prueba:
+La BD se inicializa con 5 wallets de prueba:
 
-| Wallet ID | Owner | Balance |
-|-----------|-------|---------|
-| `WAL-001` | USER-001 | $10,000.00 |
-| `WAL-002` | USER-002 | $5,000.00 |
-| `WAL-003` | USER-003 | $250.00 |
+| Wallet ID | Owner Name | Balance |
+|-----------|------------|---------|
+| `WAL-001` | Geovanny Mendoza | $10,000.00 |
+| `WAL-002` | Luis Porras | $5,000.00 |
+| `WAL-003` | Jesus Viloria | $250.00 |
+| `WAL-004` | Kelly Villa | $8,000.00 |
+| `WAL-005` | Giselle Ulloa | $3,500.00 |
 
 ## Postman
 
 Importa el archivo `payment-service-postman-collection.json` en Postman para probar todos los endpoints. La colección incluye las variables `baseUrl` y `paymentId`.
 
+## CORS
+
+El backend tiene CORS habilitado (`app.enableCors()`) para permitir consumo desde un frontend (e.g. Hilla/Vaadin en `localhost:8080`).
+
 ## Flujo de Prueba Sugerido
 
 1. **Health Check** — Verificar que el servicio esté arriba
-2. **Process Payment** — Crear un pago (`WAL-001` → `WAL-002`)
-3. **Get Payment By Id** — Consultar el pago creado con el ID retornado
-4. **List Payments** — Listar pagos filtrando por `walletId=WAL-001`
-5. **Cancel Payment** o **Refund Payment** — Cancelar o reembolsar el pago
-6. **Get Payment History** — Ver todos los eventos de `WAL-001`
+2. **List Wallets** — Obtener las wallets disponibles
+3. **Process Payment** — Crear un pago (`WAL-001` → `WAL-002`)
+4. **Get Payment By Id** — Consultar el pago creado con el ID retornado
+5. **List Payments** — Listar pagos filtrando por `walletId=WAL-001`
+6. **Cancel Payment** o **Refund Payment** — Cancelar o reembolsar el pago
+7. **Get Payment History** — Ver todos los eventos de `WAL-001`
 
 ## Tests
 
