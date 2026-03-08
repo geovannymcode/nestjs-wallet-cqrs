@@ -177,6 +177,22 @@
           ]
         }
       }
+    },
+    {
+      "name": "List Wallets",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/wallets",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "wallets"
+          ]
+        }
+      }
     }
   ],
   "variable": [
