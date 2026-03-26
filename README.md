@@ -5,8 +5,8 @@ Proyecto demo para **BAQ.js Meetup** — Demuestra los patrones CQRS y Event Sou
 ## Arquitectura
 
 ```
-                    ┌─── COMMAND SIDE ───┐                    ┌─── QUERY SIDE ───┐
-                    │                    │                    │                  │
+                    ┌─── COMMAND SIDE ───┐                   ┌─── QUERY SIDE ───┐
+                    │                    │                   │                  │
 ┌──────────┐  POST  │ ┌────────────────┐ │   ┌────────────┐  │ ┌──────────────┐ │  GET   ┌──────────┐
 │  Client  │───────▶│ │ Command Handler│─┼──▶│ Event Store│  │ │  Read Model  │─┼───────▶│  Client  │
 │          │        │ │ (Process/      │ │   │ (PG append)│  │ │  (PG tables) │ │        │          │
@@ -16,11 +16,11 @@ Proyecto demo para **BAQ.js Meetup** — Demuestra los patrones CQRS y Event Sou
                               │ produce                               │ consume
                               ▼                                       │
                     ┌─────────────────────────────────────────────────┐
-                    │              Apache Kafka                        │
-                    │  Topics: payment_processed | payment_cancelled   │
-                    │           payment_refunded                       │
-                    │                                                  │
-                    │  Kafdrop UI → http://localhost:9000               │
+                    │              Apache Kafka                       │
+                    │  Topics: payment_processed | payment_cancelled  │
+                    │           payment_refunded                      │
+                    │                                                 │
+                    │  Kafdrop UI → http://localhost:9000             │
                     └─────────────────────────────────────────────────┘
 ```
 
