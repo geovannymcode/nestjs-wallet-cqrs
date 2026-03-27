@@ -12,12 +12,14 @@ import {
   StoredEvent,
 } from '../ports/event-store-repository.interface';
 import { Wallet } from '../../domain/entities/wallet.entity';
+import { ProducerService } from '../../../kafka/producer/producer.service';
 
 describe('RefundPaymentHandler', () => {
   let handler: RefundPaymentHandler;
   let eventStore: jest.Mocked<EventStoreRepository>;
   let walletRepo: jest.Mocked<WalletRepository>;
   let eventBus: jest.Mocked<EventBus>;
+  let producerService: jest.Mocked<ProducerService>;
 
   const mockPaymentEvent: StoredEvent = {
     id: 1,
@@ -58,6 +60,10 @@ describe('RefundPaymentHandler', () => {
           provide: EventBus,
           useValue: { publish: jest.fn() },
         },
+        {
+          provide: ProducerService,
+          useValue: { produce: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -65,6 +71,7 @@ describe('RefundPaymentHandler', () => {
     eventStore = module.get(EVENT_STORE_REPOSITORY);
     walletRepo = module.get(WALLET_REPOSITORY);
     eventBus = module.get(EventBus);
+    producerService = module.get(ProducerService);
   });
 
   it('should refund payment and append event', async () => {

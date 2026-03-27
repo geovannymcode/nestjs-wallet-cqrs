@@ -1,32 +1,41 @@
-# NestJS Wallet CQRS + Event Sourcing
+# NestJS Wallet CQRS + Event Sourcing + Kafka
 
-Proyecto demo para **BAQ.js Meetup** — Demuestra los patrones CQRS y Event Sourcing aplicados a un sistema de pagos de wallet digital usando NestJS.
+Proyecto demo para **BAQ.js Meetup** — Demuestra los patrones CQRS y Event Sourcing aplicados a un sistema de pagos de wallet digital usando NestJS y **Apache Kafka** como Event Source distribuido.
 
 ## Arquitectura
 
 ```
-┌──────────┐     ┌──────────────┐     ┌──────────────┐
-│  Client  │────▶│   COMMAND    │────▶│  Event Store │
-│  (POST)  │     │   Handler    │     │ (append-only)│
-└──────────┘     └──────────────┘     └──────┬───────┘
-                                             │ Evento publicado
-                                             ▼
-┌──────────┐     ┌──────────────┐     ┌──────────────┐
-│  Client  │────▶│    QUERY     │────▶│   Read DB    │◀── Event Handler
-│  (GET)   │     │   Handler    │     │ (proyección) │    (async)
-└──────────┘     └──────────────┘     └──────────────┘
+                    ┌─── COMMAND SIDE ───┐                    ┌─── QUERY SIDE ───┐
+                    │                    │                    │                  │
+┌──────────┐  POST  │ ┌────────────────┐ │   ┌────────────┐  │ ┌──────────────┐ │  GET   ┌──────────┐
+│  Client  │───────▶│ │ Command Handler│─┼──▶│ Event Store│  │ │  Read Model  │─┼───────▶│  Client  │
+│          │        │ │ (Process/      │ │   │ (PG append)│  │ │  (PG tables) │ │        │          │
+└──────────┘        │ │  Cancel/Refund)│ │   └────────────┘  │ └──────▲───────┘ │        └──────────┘
+                    │ └───────┬────────┘ │                   │        │         │
+                    └─────────┼──────────┘                   └────────┼─────────┘
+                              │ produce                               │ consume
+                              ▼                                       │
+                    ┌─────────────────────────────────────────────────┐
+                    │              Apache Kafka                        │
+                    │  Topics: payment_processed | payment_cancelled   │
+                    │           payment_refunded                       │
+                    │                                                  │
+                    │  Kafdrop UI → http://localhost:9000               │
+                    └─────────────────────────────────────────────────┘
 ```
 
-**Principio clave:** Los Commands escriben en el Event Store (solo INSERT). Los Event Handlers actualizan la Read DB de forma asíncrona. Las Queries leen de la Read DB. Cero deadlocks.
+**Principio clave:** Los Commands escriben en el Event Store (solo INSERT) y **producen eventos a Kafka**. El Projection Consumer **consume desde Kafka** y actualiza la Read DB de forma asíncrona. Las Queries leen de la Read DB. Kafka garantiza persistencia y desacoplamiento entre el write-side y el read-side.
 
 ## Tech Stack
 
 - **NestJS 11** — Framework principal
 - **@nestjs/cqrs** — Implementación de CQRS + Event Bus
+- **Apache Kafka** — Event Source distribuido (vía kafkajs)
+- **Kafdrop** — UI web para visualizar eventos en Kafka en tiempo real
 - **PostgreSQL 17** — Event Store + Read Models
 - **pg** — Driver nativo de PostgreSQL
 - **class-validator / class-transformer** — Validación de DTOs
-- **Docker Compose** — Infraestructura local
+- **Docker Compose** — Infraestructura local (PostgreSQL + Kafka + Kafdrop)
 - **Jest** — Testing unitario
 - **SWC** — Compilación rápida
 
@@ -40,19 +49,28 @@ src/
 │   └── domain/
 │       └── result.ts                          # Result pattern para manejo de errores
 └── modules/
+    ├── kafka/                                 # Módulo Kafka (Event Source distribuido)
+    │   ├── kafka.module.ts                    # Exporta Producer + Consumer
+    │   ├── kafka.topics.ts                    # Constantes de topics
+    │   ├── producer/
+    │   │   └── producer.service.ts            # Produce eventos a Kafka
+    │   └── consumer/
+    │       ├── consumer.service.ts            # Consumer genérico de Kafka
+    │       └── projection-consumer.service.ts # Consume eventos → actualiza Read DB
+    │
     └── payment/
         ├── payment.module.ts                  # Módulo principal con DI
         │
         ├── application/
         │   ├── commands/
         │   │   ├── process-payment.command.ts
-        │   │   ├── process-payment.handler.ts       # Procesar pago
+        │   │   ├── process-payment.handler.ts       # Procesar pago → Kafka
         │   │   ├── process-payment.handler.spec.ts
         │   │   ├── cancel-payment.command.ts
-        │   │   ├── cancel-payment.handler.ts        # Cancelar pago
+        │   │   ├── cancel-payment.handler.ts        # Cancelar pago → Kafka
         │   │   ├── cancel-payment.handler.spec.ts
         │   │   ├── refund-payment.command.ts
-        │   │   ├── refund-payment.handler.ts        # Reembolsar pago
+        │   │   ├── refund-payment.handler.ts        # Reembolsar pago → Kafka
         │   │   └── refund-payment.handler.spec.ts
         │   ├── queries/
         │   │   ├── get-payment-history.query.ts
@@ -103,7 +121,7 @@ src/
 ## Quick Start
 
 ```bash
-# 1. Levantar PostgreSQL con Docker
+# 1. Levantar PostgreSQL + Kafka + Kafdrop con Docker
 docker-compose up -d
 
 # 2. Instalar dependencias
@@ -111,6 +129,9 @@ npm install
 
 # 3. Ejecutar en modo desarrollo
 npm run start:dev
+
+# 4. Abrir Kafdrop para ver eventos en tiempo real
+# http://localhost:9000
 ```
 
 ### Scripts disponibles
@@ -122,9 +143,9 @@ npm run start:dev
 | `npm test` | Ejecutar tests unitarios |
 | `npm run test:watch` | Tests en modo watch |
 | `npm run test:cov` | Tests con cobertura |
-| `npm run docker:up` | Levantar PostgreSQL |
-| `npm run docker:down` | Detener PostgreSQL |
-| `npm run docker:reset` | Resetear BD (borra datos) |
+| `npm run docker:up` | Levantar PostgreSQL + Kafka + Kafdrop |
+| `npm run docker:down` | Detener todos los contenedores |
+| `npm run docker:reset` | Resetear BD y Kafka (borra datos) |
 | `npm run demo:start` | Reset BD + iniciar servidor |
 
 ## API Endpoints
@@ -252,10 +273,32 @@ El backend tiene CORS habilitado (`app.enableCors()`) para permitir consumo desd
 1. **Health Check** — Verificar que el servicio esté arriba
 2. **List Wallets** — Obtener las wallets disponibles
 3. **Process Payment** — Crear un pago (`WAL-001` → `WAL-002`)
-4. **Get Payment By Id** — Consultar el pago creado con el ID retornado
-5. **List Payments** — Listar pagos filtrando por `walletId=WAL-001`
-6. **Cancel Payment** o **Refund Payment** — Cancelar o reembolsar el pago
-7. **Get Payment History** — Ver todos los eventos de `WAL-001`
+4. **Abrir Kafdrop** — Ver el evento `payment_processed` en http://localhost:9000
+5. **Get Payment By Id** — Consultar el pago creado con el ID retornado
+6. **List Payments** — Listar pagos filtrando por `walletId=WAL-001`
+7. **Cancel Payment** o **Refund Payment** — Cancelar o reembolsar el pago
+8. **Kafdrop** — Ver los eventos `payment_cancelled` / `payment_refunded` en Kafka
+9. **Get Payment History** — Ver todos los eventos de `WAL-001`
+
+## Kafka: Flujo de Eventos
+
+Cada operación de escritura (Command) produce un evento a Kafka:
+
+| Operación | Topic Kafka | Datos del Evento |
+|-----------|-------------|------------------|
+| Procesar pago | `payment_processed` | paymentId, walletId, amount, currency, recipientWalletId, concept, balances |
+| Cancelar pago | `payment_cancelled` | paymentId, walletId, amount, currency, reason, balances |
+| Reembolsar pago | `payment_refunded` | paymentId, walletId, amount, currency, reason, balances |
+
+El `ProjectionConsumerService` consume estos eventos y actualiza la base de datos de lectura (Read Model) de forma asíncrona.
+
+### Kafdrop (UI para Kafka)
+
+Accede a **http://localhost:9000** para:
+- Ver los topics creados automáticamente
+- Inspeccionar mensajes individuales
+- Monitorear particiones y offsets
+- Verificar el consumer group `wallet-projection-group`
 
 ## Tests
 

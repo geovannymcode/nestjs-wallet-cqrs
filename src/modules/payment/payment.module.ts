@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 
+// Kafka
+import { KafkaModule } from '../kafka/kafka.module';
+import { ProjectionConsumerService } from '../kafka/consumer/projection-consumer.service';
+
 // Presentation
 import { PaymentController } from './presentation/controllers/payment.controller';
 import { WalletController } from './presentation/controllers/wallet.controller';
@@ -41,13 +45,16 @@ const QueryHandlers = [GetPaymentHistoryHandler, GetPaymentByIdHandler, ListPaym
 const EventHandlers = [PaymentProcessedHandler, PaymentCancelledProjection, PaymentRefundedProjection];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, KafkaModule],
   controllers: [PaymentController, WalletController],
   providers: [
     // Handlers
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,
+
+    // Kafka Projection Consumer
+    ProjectionConsumerService,
 
     // Repositories (inyectados por interfaz)
     {

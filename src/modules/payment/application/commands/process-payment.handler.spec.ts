@@ -11,12 +11,14 @@ import {
   EVENT_STORE_REPOSITORY,
 } from '../ports/event-store-repository.interface';
 import { Wallet } from '../../domain/entities/wallet.entity';
+import { ProducerService } from '../../../kafka/producer/producer.service';
 
 describe('ProcessPaymentHandler', () => {
   let handler: ProcessPaymentHandler;
   let walletRepo: jest.Mocked<WalletRepository>;
   let eventStore: jest.Mocked<EventStoreRepository>;
   let eventBus: jest.Mocked<EventBus>;
+  let producerService: jest.Mocked<ProducerService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -34,6 +36,10 @@ describe('ProcessPaymentHandler', () => {
           provide: EventBus,
           useValue: { publish: jest.fn() },
         },
+        {
+          provide: ProducerService,
+          useValue: { produce: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -41,6 +47,7 @@ describe('ProcessPaymentHandler', () => {
     walletRepo = module.get(WALLET_REPOSITORY);
     eventStore = module.get(EVENT_STORE_REPOSITORY);
     eventBus = module.get(EventBus);
+    producerService = module.get(ProducerService);
   });
 
   it('should process payment and append event to store', async () => {

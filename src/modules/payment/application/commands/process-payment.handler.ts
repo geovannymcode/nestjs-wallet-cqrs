@@ -11,6 +11,8 @@ import {
   WalletRepository,
 } from '../ports/wallet-repository.interface';
 import { Result } from '../../../../shared/domain/result';
+import { ProducerService } from '../../../kafka/producer/producer.service';
+import { KAFKA_TOPICS } from '../../../kafka/kafka.topics';
 
 /**
  * ProcessPaymentHandler
@@ -32,6 +34,7 @@ export class ProcessPaymentHandler implements ICommandHandler<ProcessPaymentComm
     @Inject(EVENT_STORE_REPOSITORY)
     private readonly eventStore: EventStoreRepository,
     private readonly eventBus: EventBus,
+    private readonly producerService: ProducerService,
   ) {}
 
   async execute(command: ProcessPaymentCommand): Promise<Result<string>> {
@@ -87,7 +90,28 @@ export class ProcessPaymentHandler implements ICommandHandler<ProcessPaymentComm
       `Evento guardado: PaymentProcessed | wallet=${command.walletId} | amount=${command.amount}`,
     );
 
-    // ─── 6. Publicar evento para handlers asíncronos ───────
+    // ─── 6. Publicar evento en Kafka (Event Source of Truth) ─
+    await this.producerService.produce({
+      topic: KAFKA_TOPICS.PAYMENT_PROCESSED,
+      messages: [
+        {
+          key: command.walletId,
+          value: JSON.stringify({
+            paymentId: event.paymentId,
+            walletId: event.walletId,
+            amount: event.amount,
+            currency: event.currency,
+            recipientWalletId: event.recipientWalletId,
+            concept: event.concept,
+            previousBalance: event.previousBalance,
+            newBalance: event.newBalance,
+            occurredAt: event.occurredAt.toISOString(),
+          }),
+        },
+      ],
+    });
+
+    // ─── 7. Publicar evento para handlers in-process ─────────
     this.eventBus.publish(event);
 
     return Result.ok(event.paymentId);

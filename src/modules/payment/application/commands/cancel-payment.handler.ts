@@ -11,6 +11,8 @@ import {
   WalletRepository,
 } from '../ports/wallet-repository.interface';
 import { Result } from '../../../../shared/domain/result';
+import { ProducerService } from '../../../kafka/producer/producer.service';
+import { KAFKA_TOPICS } from '../../../kafka/kafka.topics';
 
 /**
  * CancelPaymentHandler
@@ -32,6 +34,7 @@ export class CancelPaymentHandler implements ICommandHandler<CancelPaymentComman
     @Inject(WALLET_REPOSITORY)
     private readonly walletRepository: WalletRepository,
     private readonly eventBus: EventBus,
+    private readonly producerService: ProducerService,
   ) {}
 
   async execute(command: CancelPaymentCommand): Promise<Result<string>> {
@@ -99,7 +102,26 @@ export class CancelPaymentHandler implements ICommandHandler<CancelPaymentComman
       `Evento guardado: PaymentCancelled | payment=${command.paymentId} | wallet=${walletId}`,
     );
 
-    // ─── 6. Publicar evento ──────────────────────────────────
+    // ─── 6. Publicar evento en Kafka ─────────────────────────
+    await this.producerService.produce({
+      topic: KAFKA_TOPICS.PAYMENT_CANCELLED,
+      messages: [
+        {
+          key: walletId,
+          value: JSON.stringify({
+            paymentId: event.paymentId,
+            walletId: event.walletId,
+            amount: event.amount,
+            currency: event.currency,
+            reason: event.reason,
+            previousBalance: event.previousBalance,
+            newBalance: event.newBalance,
+          }),
+        },
+      ],
+    });
+
+    // ─── 7. Publicar evento para handlers in-process ─────────
     this.eventBus.publish(event);
 
     return Result.ok(command.paymentId);
